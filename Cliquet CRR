@@ -1,0 +1,51 @@
+CRRCliquet=function(z,S0,K,t,r,div,sigma,n,m){
+  
+  dt=t/n                  # length time step
+  U=exp(sigma*sqrt(dt))   # faktor up mevement
+  D=1/U                   # faktor down movement
+  Treset=(n-m)*t/n
+  nreset=n-m              # steps to maturity - steps to reset
+  St=list()
+  Knew=list()
+  OptionValue=list()
+
+  # calculating each price in the binomial Tree 
+  # and new strike price 
+
+  for (i in 1:(m+1)) {
+    St[[i]]=S0*U^i*D^(m+1-i)  
+    Knew[[i]]=z*min(z*as.numeric(St[i]),z*K)
+    
+  # calculating the option value 
+   
+    if(z==1){
+      OptionValue[[i]]=as.numeric(blackscholes(CALL,
+                                               S0=as.numeric(St[i]),
+                                               K=as.numeric(Knew[i]),
+                                               time = Treset,r=r,
+                                               vola=sigma,
+                                               divrate = div)[1])
+    }else{
+      OptionValue[[i]]=as.numeric(blackscholes(PUT,
+                                               S0=as.numeric(St[i]),
+                                               K=as.numeric(Knew[i]),
+                                               time = Treset,r=r,
+                                               vola=sigma,
+                                               divrate = div)[1])
+    }
+  }
+  a=exp((r-div)*dt)  # cost of carry
+  p=(a-D)/(U-D)      # prob. for up movement
+  Df=exp((-r)*dt)    # discount factor
+  
+  # Going back through the binomial tree
+  
+  for (j in (m-1):1) {
+    for (i in 1:(j+1)) {
+      OptionValue[[i]]=as.numeric((p*as.numeric(OptionValue[i+1])+
+                                 (1-p)*as.numeric(OptionValue[i]))*Df)
+    }
+    
+  }
+  return(OptionValue[1]) # returning the wanted option value
+}
