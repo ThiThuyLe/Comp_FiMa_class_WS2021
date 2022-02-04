@@ -1,0 +1,48 @@
+MCCliquet=function(z,S0,K,t,r,div,sigma,m,cap,floor,runs){
+  
+  
+  
+  n=t*m                       # total step number
+  dt=t/n                      # length time step
+  U=exp(sigma*sqrt(dt))       # faktor up mevement
+  D=1/U                       # faktor down movement
+  a=exp((r-div)*dt)           # cost of carry
+  p=(a-D)/(U-D)               # prob. for up movement
+  TotalOption=0
+  Price=list()
+  yield=list()
+  yieldabs=list()
+  
+  for (j in 1:runs) {         # modelling random walks
+    for(i in 2:(n+1))
+    {
+      Price[[1]]=S0
+      if(runif(1,0,1)<p){      
+        Price[[i]]=as.numeric((Price[i-1]))*U
+      }else{
+        Price[[i]]=as.numeric((Price[i-1]))*D
+      }
+    }
+    
+    for(i in 1:t){   # calculating the yields in every period
+                             
+      yield[[i]]=min(cap,z*(as.numeric(Price[i*m+1])-
+                              as.numeric(Price[(i-1)*m+1]))/
+                       (as.numeric(Price[(i-1)*m+1])))
+      
+                          # calculating the absolute yield
+      
+  yieldabs[[i]] = as.numeric(yield[i])*as.numeric(Price[(i-1)*m+1])
+      
+    }                    # taking the sum of the absolue yields
+    
+    sumyield = max( sum(unlist(as.numeric( yieldabs)))/S0,floor)
+    
+                              # saving this value
+    
+    TotalOption=TotalOption+sumyield
+  }
+  
+  return((((TotalOption/runs)+1)*S0-K)*exp(-r*t)) # divide and discount
+  
+}
