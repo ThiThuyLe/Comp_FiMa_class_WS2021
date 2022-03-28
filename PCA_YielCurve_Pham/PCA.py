@@ -48,12 +48,10 @@ df.dropna(axis=0, how='any', inplace=True) # drop rows which contain missing val
 print(df.tail())
 print(df.shape)
 
-
 # view the yield curve
 plt.figure(figsize=(5, 5))
 plt.plot(df)
 plt.show()
-
 
 """ Get mean and standard deviation """
 means = {}
@@ -65,6 +63,17 @@ for code in codes:
     print(np.round(means[code], 3))
     stds[code] = np.std(current_column.values)
     print(np.round(stds[code], 3))
+
+"""Result mean and std respectively """
+##### Calculate for DGS3MO: 1.05  1.0
+##### Calculate for DGS6MO: 1.106  1.021
+##### Calculate for DGS1: 1.156  1.035
+##### Calculate for DGS2: 1.242  1.021
+##### Calculate for DGS3: 1.32  0.989
+##### Calculate for DGS5: 1.479  0.909
+##### Calculate for DGS7: 1.658  0.839
+##### Calculate for DGS10: 1.799  0.783
+##### Calculate for DGS20: 2.153  0.643
 
 """"barplot daily mean and standard deviation"""
 # means:
@@ -114,12 +123,16 @@ print(pca_X.explained_variance_)        # eigenvalues
 print(pca_X.explained_variance_ratio_)     # normalized eigenvalues (sum to 1)
 print(np.cumsum(pca_X.explained_variance_ratio_))
 
+""""Result"""
+#Proportion of Variance:
+#[0.79578655 0.10619035 0.05175344 0.01530251 0.01076603 0.00925707 0.00539401 0.0033451  0.00220494]
+#Cumulative Proportion
+# [0.79578655 0.9019769  0.95373034 0.96903285 0.97979888 0.98905595  0.99444996 0.99779506 1.        ]
 
 plt.plot(pca_X.explained_variance_ratio_.cumsum())
 plt.xlabel('number of components')
 plt.ylabel('cumulative explained variance')
 plt.show()
-
 
 # plot component
 df_pca_level = pca_Y.transform(df)            # T or PCs
