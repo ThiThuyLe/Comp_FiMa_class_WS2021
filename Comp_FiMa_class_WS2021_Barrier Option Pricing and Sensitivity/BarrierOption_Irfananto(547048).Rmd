@@ -1,0 +1,524 @@
+---
+title: ""
+output:
+  pdf_document: 
+    number_sections: true
+geometry: "a4paper, top=1.25in,bottom=1.25in,right=1.25in,left=1.25in"
+fontsize: 12pt
+header-includes:
+  - \usepackage{float}
+  - \usepackage{sectsty}
+  - \usepackage{paralist}
+  - \usepackage{setspace}\spacing{1.5}
+  - \usepackage{fancyhdr}
+  - \usepackage{lastpage}
+  - \usepackage{dcolumn}
+  - \usepackage{natbib}\bibliographystyle{agsm}
+  - \usepackage[nottoc, numbib]{tocbibind}
+  - \usepackage{bbm}
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(tinytex.verbose = TRUE)
+library(reticulate)
+```
+\allsectionsfont{\raggedright}
+\subsectionfont{\raggedright}
+\subsubsectionfont{\raggedright}
+
+\begin{centering}
+\thispagestyle{empty}
+\Huge
+{\bf Barriere Optionen }
+
+\vspace{0.2cm}
+\Large
+{Preis und Sensitivität}
+
+\vfill
+\small
+{von}
+
+\vspace{0.2cm}
+{Ananda Eraz Irfananto (547048)}
+
+\vspace{0.2cm}
+Abschlussprojekt des Moduls Computergestützte Methoden der Finanzmathematik
+
+\vspace{0.5cm}
+{Wintersemester 21/22}
+    
+\end{centering}
+
+\newpage
+\tableofcontents
+
+\newpage
+# Einführung
+
+Barriere Optionen sind Derivat, die billiger als andere standard Vanilla Optionen sind. Sie sind unterschiedlich im Sinne dass der Wert von dem zugrundeliegenden Wertpapier eine Barriere $H$, während der Laufzeit von $T$, berühren oder nicht berühren muss. Es gibt zwei Arten von Barriere Optionen: _kick-out_ Option und _kick-in_ Option. Eine _kick-out_ Option bedeutet eine Null-Auszahlung _(payoff)_, wenn die Barriere berührt ist. Andererseits, eine _kick-in_ Option resultiert in eine Null-Auszahlung, wenn die Barriere nicht berührt ist. Diese beide Situationen machen die Optionpreis zwar billiger als Vanilla Optionen, weil die Option jetzt keinen Wert haben, wo Vanilla Optionen ausgezahlt würde. In dieser Arbeit, wir konzentrieren uns auf _kick-out_ Option und deren Sensitivität. Die Implementierung wird auf Python durchgeführt.
+
+\newpage
+# Finanzinstrumente
+
+Ein *Derivat* ist ein Finanzinstrument, dessen Wert von anderen Finanzinstrumenten abgeleitet (derived) ist. Der Wert von dem Derivat ist von dem Wert der zugrunde liegenden Wertpapiere abhängig. Wie sich der Preis des Basiswerts entwickelt, profitiert der Anleger oder verzeichnet er Verluste.
+
+## Optionen
+
+Eine Option gibt dem Käufer das Recht, Pflicht aber nicht, ein Finanzprodukt wie Aktie $S$, zu einem vereinbartem *Strike-Preis* $K$ während der Laufzeit $T$ (maturity), zu kaufen oder zu verkaufen. Eine Option $X$ garantiert ihrem Besitzer eine nicht-negative, endliche Zahlung
+
+\begin{equation*}
+        X = f(S_T)    
+\end{equation*}
+
+zur Zeit $T$, wobei $f$ eine nicht-negative, endliche Funktion ist.
+
+Eine *Call-Option* gibt dem Besitzer das Recht die Aktie zu kaufen. Eine *Put-Option* gibt dem Besitzer das Recht die Aktie zu verkaufen. Zwei allgemeine Arten von Optionen sind die _europäische_ und _amerikanische_ Optionen. Europäische Option hat feste Maturität $T$ und kann nur an dieser Zeit ausgeübt werden. Amerikanische Option ist eher flexibler, dass die Option irgendwann während der Laufzeit oder Maturität $T$ ausgeübt werden kann.
+
+## Auszahlung (Payoff)
+
+Der Preis, der für die ausgeübte europäische Option ausgezahlt ist, heißt _Streik-Preis_ $K$. Der Gewinn am Fälligkeit $T$ oder _payoff_ kann man so formulieren:
+
+\begin{equation*}
+        Payoff = max[0,(S_T - K)] = (S_T - K)^+   
+\end{equation*}
+
+Für die europäische Call-Option. Analog für die europäische Put-Option:
+
+\begin{equation*}
+        Payoff = max[0,(K - S_T)] = (K - S_T)^+   
+\end{equation*}
+
+
+Figure 1[^1] zeigt die Auszahlungsprofil einer europäischen Option.
+
+![Payoff europäische Call bzw. Put-Option](/Users/anandaeraz/HTW/WMATHE/COMPFIMA/BARRIEROPT_IRFANANTO(547048)/Payoff european call put option.png){width=350}
+
+## Option Sensitivität
+
+Sensitivität (oder _Greeks_) ist ein wichtiges Instrument in Finanzmathematik. Um europäische Optionen bewerten zu können, werden die Sensitivität des Optionpreises zu den Parameter berechnet. Sie ist eine partielle Ableitung des Optionspreises nach verschiedene Parameter und bezeichnet man mit griechischen Buchstaben. Sie beschreibt, wie verhält sich der Optionspreis unter kleine Änderung von den Parametern.
+
+### Delta ($\Delta$)
+
+Delta ist die partielle Ableitung des Call-Preises nach dem Undelying. Delta misst, wie stark sich der Call-Preis ändert bei Änderung des Aktienpreises um eine Einheit.
+
+\begin{equation*}
+        \Delta = \frac{\partial C}{\partial S_0}   
+\end{equation*}
+
+[^1]: https://www.researchgate.net/profile/Joshua-Knight/publication/272165209/figure/fig2/AS:669541793284097@1536642611104/Payoffs-for-a-European-call-option-left-and-put-option-right-with-strike-price-of.ppm
+
+\newpage
+
+### Gamma ($\Gamma$)
+
+Gamma ist die zweite partielle Ableitung des Call-Preises nach dem Preis der Underlyings.
+
+\begin{equation*}
+        \Gamma = \frac{\partial^2 C}{\partial^2 S_0}   
+\end{equation*}
+
+### Theta ($\Theta$)
+
+Theta misst die Sensitivität des Calls zu einer negativen Laufzeit, also die partielle Ableitung nach negativen Laufzeit. Bei verkürzende Laufzeit sinkt der Call-Optionspreis, mittlerweile beim Put hängt dieses Verhalten sehr Stark von dem aktuellen Kurs ab.
+
+\begin{equation*}
+        \Theta = \frac{\partial C}{\partial (-T)}   
+\end{equation*}
+
+### Vega ($\nu$)
+
+Vega ist die partielle Ableitung nach der Volatilität $\sigma$. Bei steigender Volatilität steigt der Preis einer Call- bzw. Put-Option.
+
+\begin{equation*}
+        \nu = \frac{\partial C}{\partial \sigma}   
+\end{equation*}
+
+### Rho ($\rho$)
+
+Rho misst die Sensitivität des Preises zum Zinssatz. Bei zunehmendem Zins steigt der Preis von Call und sinkt der Preis von Put.
+
+\begin{equation*}
+        \rho = \frac{\partial C}{\partial r}   
+\end{equation*}
+
+\newpage
+
+## Barriere Optionen
+
+Barriere Optionen ändern sich sprungweise, wenn der Aktienpreis $S_t$ eine gegebene Barriere $H$ zum Laufzeitende $T$ erreichen. Angenommen eine einfache europäische barriere Option
+
+\begin{align*}
+       \text{Laufzeit $T$, Strike-Preis $K$, Barriere $H$}    
+\end{align*}
+
+gibt der Besitzer das Recht, eine Aktie zur Zeit $T$ mit Strike-Preis $K$ zu kaufen, wenn gilt:
+
+- _down-and-out_: $S_t > H$ für alle 0 $\le$ $t$ $\le$ $T$
+- _up-and-out_: $S_t < H$ für alle 0 $\le$ $t$ $\le$ $T$
+
+Der Fall von _Knock-out Option_ resultiert in einer Null-Auszahlung, wenn der Preis $S_t$ die Barriere erreichen. Figure 2[^2] zeigt die Situation von _down-and-out_ Option. Wenn der Preis die Barriere erreicht, die Option wird wertlos sein, obwohl ihr Preis in der Zukünft weiter steigt.
+
+![Situation von down-and-out Option](/Users/anandaeraz/HTW/WMATHE/COMPFIMA/BARRIEROPT_IRFANANTO(547048)/down-and-out.png){width=350}
+
+[^2]:https://www.quantstart.com/articles/Monte-Carlo-Simulations-In-CUDA-Barrier-Option-Pricing/
+
+\newpage
+
+Angenommen eine _down-and-out_ Call-Option mit $K > B$. Solange $S_t > H$ gilt, dann erfüllt $V(S,t)$ die Black-Scholes Differentialgleichung mit Begrenzung:
+
+\begin{equation*}
+        V(S,T) = max(S_T - K, 0)   
+\end{equation*}
+
+Weiterhin gilt, wenn der Basiswert $S_t$ die Barriere H erreicht, dann:
+
+\begin{equation*}
+        V(B,t) = 0, \text{$ 0 \le t \le T$}  
+\end{equation*}
+
+Die geschlossene Formel für den Preis ist:
+
+\begin{equation*}
+        V(S,t) = C(S,t) - \left(\frac{H}{S}\right)^\alpha C\left(\frac{H^2}{S},t\right)
+\end{equation*}
+
+mit $\alpha = \frac{2r}{\sigma^2} - 1$.
+
+# Implementierung in Python
+## Barriere Option Preisbewertung
+In dieser Kapitel, wir werden die vorhergezeigten Formeln zur Preisbewertung von Barriere Option sowie ihre Sensitivitäten in Python implementieren.Das Paket _numpy_ und *py_vollib* werden für die Implementierung notwendig sein. Das Binomialbaum wird als ein Netzwerk mit Knoten $(i,j)$ betrachtet, mit $i$ als einen Zeitschritt und $j$ als die Outputnummer von gefragenem Preis.
+
+\begin{equation*}
+        S_{ij} = S_0 u^j d^{i-j}
+\end{equation*}
+
+$C_{ij}$ stellt den Preis für jede Knote $(i,j)$ dar, wo C_{Nj} den Payoff am Ende bezeichnet. Für _up-and-out_ Put Barriere Option:
+
+\begin{equation*}
+        \text{wenn $T = t_N$, dann gilt $C^j_N = (K - S^j_N)^+ \mathbb{1}{(S^j_N < H)}$}
+\end{equation*}
+
+für die restliche Knoten $(i,j)$
+
+- $t_n \in T$ und $S^j_i \ge H \Rightarrow C^j_i = 0$
+- $t_n \notin T$ oder $S^j_i < H \Rightarrow C^j_i = \exp^{-r\Delta T}[q^j_i C^{j+1}_{i+1} + (1-q^j_i)C^{j-1}_{i+1}]$
+
+Jetzt definieren wir die Parameter für die Funktion, nämlich:
+
+- $S_0$ Basiswert
+- $K$ Strike-Preis
+- $T$ Laufzeit oder Maturität in Jahre
+- $H$ Barrierpreis
+- $r$ Zinssatz
+- $N$ Anzahl des Zeitschrittes
+- $u$ Up-Faktor
+- $opt$ Optiontyp Call oder Put
+
+Dann wir werden _for-loops_ zur Iteration der Knoten $j$ in jedem Zeitschritt $i$.
+
+```{r eval=FALSE}
+import numpy as np
+def barrieropt(S0,K,T,H,r,N,u,opt):
+    #Konstante definieren
+    dt = T/N  # Länge
+    d = 1/u  # down-faktor
+    q = (np.exp(r * dt) - d)/(u - d) # Erfolgswahrscheinlichkeit 
+    disk = np.exp(-r * dt) # Diskontierung
+    
+    #Wert von Underlyings am Maturität
+    S = np.zeros(N+1)
+    for j in range(0, N+1):
+        S[j] = S0 * u**j * d**(N - j)
+    
+    #Option payoff
+    C = np.zeros(N+1)
+    for j in range(0, N+1):
+        if opt == 'C':
+            C[j] = max(0, S[j] - K)
+        elif opt == 'P':
+            C[j] = max(0, K - S[j])
+            
+    #Barrier prüfen
+    for j in range(0, N+1):
+        S = S0 * u**j * d**(N - j)
+        if S >= H:
+            C[j] = 0
+        
+            
+    #Rückwärts durch den Binomialbaum
+    for i in np.arange(N-1, -1, -1):
+        for j in range(0, i+1):
+            S = S0 * u**j * d**(i - j)
+            if S >= H:
+                C[j] = 0
+            else:
+                C[j] = disk * (q * C[j+1] + (1 - q) * C[j])
+    return C[0]
+
+
+```
+Hier setzen wir erstmal $S$ und $C$ als Nullvektoren, die später durch _for-loops_ ausgefüllt werden. Danach wir können die Barriere prüfen ob sie schon erreicht wurde. Das Vorgehen ist, wir berechnen $S$ und dann setezen wir eine Bedingung, wenn der Preis größer als Barriere $H$, dann wird der Preis $C[j] = 0$. Folgende Code zeigen die Ergebnisse von verschiedenen Parametern.
+
+\newpage
+
+```{r eval=FALSE}
+# S0 = 100  Basiswert
+# K = 100   Strike-Preis
+# T = 1     Maturität im Jahr (betrachtende Laufzeit)
+# H = 125   up-and-out Barrierpreis
+# r = 0.06  Zins
+# N = 3     Anzahl von Schritt
+# u = 1.1   up-faktor 
+barrieropt(100,100,1,125,0.06,3,1.1,opt='C')  # Call-Option
+```
+```{r eval=FALSE}
+4.00026736854323
+```
+```{r eval=FALSE}
+# S0 = 200  Basiswert
+# K = 250   Strike-Preis
+# T = 1     Maturität im Jahr (betrachtende Laufzeit)
+# H = 80    down-and-out Barrierpreis
+# r = 0.06  Zins
+# N = 3     Anzahl von Schritt
+# u = 1.1   up-faktor 
+barrieropt(200,250,1,80,0.06,3,1.1,opt='C')  # Call-Option
+```
+```{r eval=FALSE}
+0.0
+```
+```{r eval=FALSE}
+# S0 = 100  Basiswert
+# K = 100   Strike-Preis
+# T = 1     Maturität im Jahr (betrachtende Laufzeit)
+# H = 125   up-and-out Barrierpreis
+# r = 0.06  Zins
+# N = 3     Anzahl von Schritt
+# u = 1.1   up-faktor 
+barrieropt(100,100,1,125,0.06,3,1.1,opt='P')  # Put-Option
+```
+```{r eval=FALSE}
+4.322189158353709
+```
+```{r eval=FALSE}
+# S0 = 200  Basiswert
+# K = 250   Strike-Preis
+# T = 1     Maturität im Jahr (betrachtende Laufzeit)
+# H = 80    down-and-out Barrierpreis
+# r = 0.06  Zins
+# N = 3     Anzahl von Schritt
+# u = 1.1   up-faktor
+barrieropt(200,250,1,80,0.06,3,1.1,opt='P')  # Put-Option
+```
+```{r eval=FALSE}
+0.0
+```
+
+## Sensitivität
+
+In diesem Teil, wir werden die Sensitivitäten oder Greeks, die wir selbst berechnen, mit die Module von *py_vollib*. Zunächst implementieren wir die Black-Scholes Formel in Python. Für die benötigte Variablen, benutzen wir dieselbe Parameter wie oben.
+
+```{r eval=FALSE}
+from scipy.stats import norm
+from py_vollib.black_scholes import black_scholes as bs
+from py_vollib.black_scholes.greeks.analytical import delta, gamma, 
+vega, theta, rho
+```
+```{r eval=FALSE}
+# Variablen definieren
+r = 0.06 # Zins
+S = 100   # Optionswert
+K = 100   # Strike-Preis
+T = 240/365 # Laufzeit
+sigma = 0.30 # Volatilität
+
+def blackScholes(r, S, K, T, sigma, type="c"):
+    # Black-Scholes Preis berechnen
+    d1 = (np.log(S/K) + (r + sigma**2/2)*T)/(sigma*np.sqrt(T))
+    d2 = d1 - sigma*np.sqrt(T)
+    try:
+        if type == "c":
+            preis = S*norm.cdf(d1, 0, 1) - K*np.exp(-r*T)*norm.cdf(d2, 0, 1)
+        elif type == "p":
+            preis = K*np.exp(-r*T)*norm.cdf(-d2, 0, 1) - S*norm.cdf(-d1, 0, 1)
+        return preis, bs(type, S, K, T, r, sigma)
+    except:
+        print("Bitte geben Sie 'type' ein")
+```
+
+Jetzt wir können die Greeks definieren, damit wir am Ende die Werte vergleichen können.
+
+## Delta ($\Delta$)
+
+```{r eval=FALSE}
+def delta_calc(r, S, K, T, sigma, type="c"):
+    # Delta berechnen
+    d1 = (np.log(S/K) + (r + sigma**2/2)*T)/(sigma*np.sqrt(T))
+    try:
+        if type == "c":
+            delta_calc = norm.cdf(d1, 0, 1)
+        elif type == "p":
+            delta_calc = -norm.cdf(-d1, 0, 1)
+        return delta_calc, delta(type, S, K, T, r, sigma)
+    except:
+        print("Bitte geben Sie 'type' ein")
+```
+
+## Gamma ($\Gamma$)
+
+```{r eval=FALSE}
+def gamma_calc(r, S, K, T, sigma, type="c"):
+    # Gamma berechnen
+    d1 = (np.log(S/K) + (r + sigma**2/2)*T)/(sigma*np.sqrt(T))
+    d2 = d1 - sigma*np.sqrt(T)
+    try:
+        gamma_calc = norm.pdf(d1, 0, 1)/(S*sigma*np.sqrt(T))
+        return gamma_calc, gamma(type, S, K, T, r, sigma)
+    except:
+        print("Bitte geben Sie 'type' ein")
+```
+
+## Vega ($\nu$)
+
+```{r eval=FALSE}
+def vega_calc(r, S, K, T, sigma, type="c"):
+    # Vega berechnen
+    d1 = (np.log(S/K) + (r + sigma**2/2)*T)/(sigma*np.sqrt(T))
+    d2 = d1 - sigma*np.sqrt(T)
+    try:
+        vega_calc = S*norm.pdf(d1, 0, 1)*np.sqrt(T)
+        return vega_calc*0.01, vega(type, S, K, T, r, sigma)
+    except:
+        print("Bitte geben Sie 'type' ein")
+```
+
+## Theta ($\Theta$)
+
+```{r eval=FALSE}
+def theta_calc(r, S, K, T, sigma, type="c"):
+    # Theta berechnen
+    d1 = (np.log(S/K) + (r + sigma**2/2)*T)/(sigma*np.sqrt(T))
+    d2 = d1 - sigma*np.sqrt(T)
+    try:
+        if type == "c":
+            theta_calc = -S*norm.pdf(d1, 0, 1)*sigma/(2*np.sqrt(T)) - r*K*np.exp(-r*T)*norm.cdf(d2, 0, 1)
+        elif type == "p":
+            theta_calc = -S*norm.pdf(d1, 0, 1)*sigma/(2*np.sqrt(T)) + r*K*np.exp(-r*T)*norm.cdf(-d2, 0, 1)
+        return theta_calc/365, theta(type, S, K, T, r, sigma)
+    except:
+        print("Bitte geben Sie 'type' ein")
+```
+
+## Rho ($\rho$)
+
+```{r eval=FALSE}
+def rho_calc(r, S, K, T, sigma, type="c"):
+    # Rho berechnen
+    d1 = (np.log(S/K) + (r + sigma**2/2)*T)/(sigma*np.sqrt(T))
+    d2 = d1 - sigma*np.sqrt(T)
+    try:
+        if type == "c":
+            rho_calc = K*T*np.exp(-r*T)*norm.cdf(d2, 0, 1)
+        elif type == "p":
+            rho_calc = -K*T*np.exp(-r*T)*norm.cdf(-d2, 0, 1)
+        return rho_calc*0.01, rho(type, S, K, T, r, sigma)
+    except:
+        print("Bitte geben Sie 'type' ein")
+```
+
+\newpage
+```{r eval=FALSE}
+option_type='p'
+
+print("Option Preis: ", [round(x,3) for x in blackScholes(r, S, K, T, 
+                                                          sigma, option_type)])
+print("       Delta: ", [round(x,3) for x in delta_calc(r, S, K, T, 
+                                                        sigma, option_type)])
+print("       Gamma: ", [round(x,3) for x in gamma_calc(r, S, K, T, 
+                                                        sigma, option_type)])
+print("       Vega : ", [round(x,3) for x in vega_calc(r, S, K, T, 
+                                                       sigma, option_type)])
+print("       Theta: ", [round(x,3) for x in theta_calc(r, S, K, T, 
+                                                        sigma, option_type)])
+print("       Rho  : ", [round(x,3) for x in rho_calc(r, S, K, T, 
+                                                      sigma, option_type)])
+```
+```{r eval=FALSE}
+Option Preis:  [7.684, 7.684]
+       Delta:  [-0.388, -0.388]
+       Gamma:  [0.016, 0.016]
+       Vega :  [0.311, 0.311]
+       Theta:  [-0.012, -0.012]
+       Rho  :  [-0.306, -0.306]
+```
+```{r eval=FALSE}
+option_type='c'
+
+print("Option Preis: ", [round(x,3) for x in blackScholes(r, S, K, T,
+                                                  sigma, option_type)])
+print("       Delta: ", [round(x,3) for x in delta_calc(r, S, K, T, 
+                                                  sigma, option_type)])
+print("       Gamma: ", [round(x,3) for x in gamma_calc(r, S, K, T, 
+                                                  sigma, option_type)])
+print("       Vega : ", [round(x,3) for x in vega_calc(r, S, K, T, 
+                                                  sigma, option_type)])
+print("       Theta: ", [round(x,3) for x in theta_calc(r, S, K, T, 
+                                                  sigma, option_type)])
+print("       Rho  : ", [round(x,3) for x in rho_calc(r, S, K, T, 
+                                                  sigma, option_type)])
+```
+```{r eval=FALSE}
+Option Preis:  [11.552, 11.552]
+       Delta:  [0.612, 0.612]
+       Gamma:  [0.016, 0.016]
+       Vega :  [0.311, 0.311]
+       Theta:  [-0.028, -0.028]
+       Rho  :  [0.326, 0.326]
+```
+
+Hier sehen wir dass die Werte von unserer Berechnung die gleiche Werte von Module haben.
+
+\newpage
+# Quelle
+
+- Jürgen Franke, Wolfgang Karl Härdle and Christian Matthias Hafner Statistics of Financial Markets – 5th ed. Springer, 2019.
+- Jakub Stoklosa Studies of Barrier Options and their Sensitivities available on http://www.ms.unimelb.edu.au, 2007.
+
+\newpage
+
+__Declaration of Authorship__
+\
+
+We hereby confirm that we have authored this Seminar paper independently and without use of others than the indicated sources. All passages (and codes) which are literally or in general matter taken out of publications or other sources are marked as such.
+
+\
+Berlin, 29 March 2022
+\begin{centering}
+\vspace{2.0cm}
+{Ananda Eraz Irfananto}
+\end{centering}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
