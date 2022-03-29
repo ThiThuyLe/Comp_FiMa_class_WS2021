@@ -7,7 +7,7 @@
 # ------------------------------------------------------------------------------
 # Output:         List pictures, tables or other outputs of the script.
 # ------------------------------------------------------------------------------
-# Author :        Thi Ngan Ha Pham, 566022
+# Author :        Thi Ngan Ha Pham
 # ------------------------------------------------------------------------------
 # Dataset:        List datafiles necessary to reproduce results (Don't forget to
 #                 upload them to the Project folder on GitHub)
